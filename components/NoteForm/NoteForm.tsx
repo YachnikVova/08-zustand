@@ -2,23 +2,22 @@
 
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createNote } from "@/lib/api/notes";
-import { useNoteStore } from "@/lib/store/noteStore";
-import type { CreateNoteData, NoteTag } from "@/types/note";
+import { addNote } from "@/lib/api/notes";
+import { NOTE_TAGS } from "@/lib/constants";
+import { useNoteDraftStore, type NoteDraft } from "@/lib/store/noteStore";
+import type { CreateNoteData } from "@/types/note";
 import css from "./NoteForm.module.css";
 
-const tags: NoteTag[] = ["Todo", "Work", "Personal", "Meeting", "Shopping"];
+type FormField = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
 
 export default function NoteForm() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const draft = useNoteStore((state) => state.draft);
-  const setDraft = useNoteStore((state) => state.setDraft);
-  const clearDraft = useNoteStore((state) => state.clearDraft);
+  const { draft, setDraft, clearDraft } = useNoteDraftStore();
 
-  const createMutation = useMutation({
-    mutationFn: createNote,
+  const mutation = useMutation({
+    mutationFn: addNote,
     onSuccess: () => {
       clearDraft();
       queryClient.invalidateQueries({ queryKey: ["notes"] });
@@ -26,37 +25,35 @@ export default function NoteForm() {
     },
   });
 
-  const createNoteAction = (formData: FormData) => {
-    const title = String(formData.get("title") ?? "").trim();
-    const content = String(formData.get("content") ?? "").trim();
-    const tag = String(formData.get("tag") ?? "Todo") as NoteTag;
-
-    const newNote: CreateNoteData = {
-      title,
-      tag,
-    };
-
-    if (content) {
-      newNote.content = content;
-    }
-
-    createMutation.mutate(newNote);
+  const handleChange = (event: React.ChangeEvent<FormField>) => {
+    const { name, value } = event.target;
+    setDraft({ [name]: value } as Partial<NoteDraft>);
   };
 
-  const handleCancel = () => {
-    router.back();
+  const handleSubmit = (formData: FormData) => {
+    const payload: CreateNoteData = {
+      title: String(formData.get("title") ?? "").trim(),
+      tag: draft.tag,
+    };
+
+    const content = String(formData.get("content") ?? "").trim();
+    if (content) {
+      payload.content = content;
+    }
+
+    mutation.mutate(payload);
   };
 
   return (
-    <form className={css.form}>
+    <form className={css.form} action={handleSubmit}>
       <label className={css.label}>
         Title
         <input
           className={css.input}
-          name="title"
           type="text"
+          name="title"
           value={draft.title}
-          onChange={(event) => setDraft({ title: event.target.value })}
+          onChange={handleChange}
           required
           minLength={3}
           maxLength={50}
@@ -69,7 +66,7 @@ export default function NoteForm() {
           className={css.textarea}
           name="content"
           value={draft.content}
-          onChange={(event) => setDraft({ content: event.target.value })}
+          onChange={handleChange}
           maxLength={500}
         />
       </label>
@@ -80,29 +77,23 @@ export default function NoteForm() {
           className={css.input}
           name="tag"
           value={draft.tag}
-          onChange={(event) =>
-            setDraft({ tag: event.target.value as NoteTag })
-          }
+          onChange={handleChange}
         >
-          {tags.map((tagName) => (
-            <option key={tagName} value={tagName}>
-              {tagName}
+          {NOTE_TAGS.map((tag) => (
+            <option key={tag} value={tag}>
+              {tag}
             </option>
           ))}
         </select>
       </label>
 
       <div className={css.actions}>
-        <button type="button" onClick={handleCancel}>
+        <button type="button" onClick={() => router.back()}>
           Cancel
         </button>
 
-        <button
-          type="submit"
-          formAction={createNoteAction}
-          disabled={createMutation.isPending}
-        >
-          {createMutation.isPending ? "Creating..." : "Create"}
+        <button type="submit" disabled={mutation.isPending}>
+          {mutation.isPending ? "Creating..." : "Create"}
         </button>
       </div>
     </form>

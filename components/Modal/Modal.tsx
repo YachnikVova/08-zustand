@@ -11,33 +11,30 @@ interface ModalProps {
 
 export default function Modal({ children, onClose }: ModalProps) {
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const onKeydown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         onClose();
       }
     };
 
-    const originalOverflow = document.body.style.overflow;
-
-    document.addEventListener("keydown", handleKeyDown);
+    const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", onKeydown);
 
     return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = originalOverflow;
+      document.removeEventListener("keydown", onKeydown);
+      document.body.style.overflow = prevOverflow;
     };
   }, [onClose]);
 
-  const handleBackdropClick = (
-    event: React.MouseEvent<HTMLDivElement>,
-  ) => {
+  const onBackdropClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget) {
       onClose();
     }
   };
 
   return createPortal(
-    <div className={css.backdrop} onClick={handleBackdropClick}>
+    <div className={css.backdrop} onClick={onBackdropClick}>
       <div className={css.modal}>
         <button type="button" className={css.closeButton} onClick={onClose}>
           ×

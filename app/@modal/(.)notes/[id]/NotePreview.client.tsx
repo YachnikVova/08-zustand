@@ -3,13 +3,13 @@
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import Modal from "@/components/Modal/Modal";
-import { fetchNoteById } from "@/lib/api/notes";
+import { getNote } from "@/lib/api/notes";
+import { formatDate } from "@/lib/format";
 import css from "./NotePreview.module.css";
 
 export default function NotePreviewClient() {
   const router = useRouter();
-  const params = useParams<{ id: string }>();
-  const id = params.id;
+  const { id } = useParams<{ id: string }>();
 
   const {
     data: note,
@@ -17,14 +17,12 @@ export default function NotePreviewClient() {
     error,
   } = useQuery({
     queryKey: ["note", id],
-    queryFn: () => fetchNoteById(id),
+    queryFn: () => getNote(id),
     enabled: Boolean(id),
     refetchOnMount: false,
   });
 
-  const handleClose = () => {
-    router.back();
-  };
+  const handleClose = () => router.back();
 
   if (isLoading) {
     return (
@@ -51,10 +49,8 @@ export default function NotePreviewClient() {
 
         <p className={css.tag}>{note.tag}</p>
         <p className={css.content}>{note.content}</p>
-        <p className={css.date}>
-          {new Date(note.createdAt).toLocaleDateString()}
-        </p>
+        <p className={css.date}>{formatDate(note.createdAt)}</p>
       </div>
     </Modal>
   );
-}   
+}

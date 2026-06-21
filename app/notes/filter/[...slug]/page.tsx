@@ -4,18 +4,15 @@ import {
   QueryClient,
 } from "@tanstack/react-query";
 import { notFound } from "next/navigation";
-import { fetchNotes } from "@/lib/api/notes";
+import type { Metadata } from "next";
+import { getNotes } from "@/lib/api/notes";
+import { isNoteTag } from "@/lib/constants";
+import { buildMetadata } from "@/lib/seo";
 import type { NoteTag } from "@/types/note";
 import NotesClient from "./Notes.client";
-import type { Metadata } from "next";
-
-const SITE_URL = "https://08-zustand.vercel.app";
-const OG_IMAGE = "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg";
 
 const INITIAL_PAGE = 1;
 const PER_PAGE = 12;
-
-const validTags: NoteTag[] = ["Todo", "Work", "Personal", "Meeting", "Shopping"];
 
 interface NotesFilterPageProps {
   params: Promise<{
@@ -30,23 +27,11 @@ export async function generateMetadata({
   const selectedTag = slug[0];
   const filterName = selectedTag === "all" ? "All notes" : selectedTag;
 
-  return {
-    title: `NoteHub - ${filterName}`,
+  return buildMetadata({
+    title: `NoteHub — ${filterName}`,
     description: `Browse notes filtered by ${filterName}.`,
-    openGraph: {
-      title: `NoteHub - ${filterName}`,
-      description: `Browse notes filtered by ${filterName}.`,
-      url: `${SITE_URL}/notes/filter/${selectedTag}`,
-      images: [
-        {
-          url: OG_IMAGE,
-          width: 1200,
-          height: 630,
-          alt: "NoteHub application preview",
-        },
-      ],
-    },
-  };
+    path: `/notes/filter/${selectedTag}`,
+  });
 }
 
 export default async function NotesFilterPage({
@@ -59,15 +44,12 @@ export default async function NotesFilterPage({
     notFound();
   }
 
-  const tag =
-    selectedTag === "all"
-      ? undefined
-      : validTags.includes(selectedTag as NoteTag)
-        ? (selectedTag as NoteTag)
-        : null;
-
-  if (tag === null) {
-    notFound();
+  let tag: NoteTag | undefined;
+  if (selectedTag !== "all") {
+    if (!isNoteTag(selectedTag)) {
+      notFound();
+    }
+    tag = selectedTag;
   }
 
   const queryClient = new QueryClient();
@@ -75,7 +57,7 @@ export default async function NotesFilterPage({
   await queryClient.prefetchQuery({
     queryKey: ["notes", selectedTag, "", INITIAL_PAGE],
     queryFn: () =>
-      fetchNotes({
+      getNotes({
         page: INITIAL_PAGE,
         perPage: PER_PAGE,
         search: "",
