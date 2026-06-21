@@ -1,12 +1,12 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import type { NoteTag } from "@/types/note";
 
-export interface NoteDraft {
+export type NoteDraft = {
   title: string;
   content: string;
   tag: NoteTag;
-}
+};
 
 export const initialDraft: NoteDraft = {
   title: "",
@@ -14,32 +14,25 @@ export const initialDraft: NoteDraft = {
   tag: "Todo",
 };
 
-interface NoteStore {
+type NoteDraftStore = {
   draft: NoteDraft;
-  setDraft: (note: Partial<NoteDraft>) => void;
+  setDraft: (patch: Partial<NoteDraft>) => void;
   clearDraft: () => void;
-}
+};
 
-export const useNoteStore = create<NoteStore>()(
+export const useNoteDraftStore = create<NoteDraftStore>()(
   persist(
     (set) => ({
       draft: initialDraft,
-
-      setDraft: (note) =>
-        set((state) => ({
-          draft: {
-            ...state.draft,
-            ...note,
-          },
-        })),
-
-      clearDraft: () =>
-        set({
-          draft: initialDraft,
-        }),
+      setDraft: (patch) =>
+        set((state) => ({ draft: { ...state.draft, ...patch } })),
+      clearDraft: () => set({ draft: initialDraft }),
     }),
     {
-      name: "note-draft",
+      name: "notehub-draft",
+      version: 1,
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ draft: state.draft }),
     },
   ),
 );
