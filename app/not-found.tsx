@@ -1,26 +1,12 @@
 import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/seo";
 import css from "./NotFound.module.css";
 
-const SITE_URL = "https://08-zustand.vercel.app";
-const OG_IMAGE = "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg";
-
-export const metadata: Metadata = {
-  title: "404 - Page not found",
+export const metadata: Metadata = buildMetadata({
+  title: "404 — Page not found",
   description: "Sorry, the page you are looking for does not exist.",
-  openGraph: {
-    title: "404 - Page not found",
-    description: "Sorry, the page you are looking for does not exist.",
-    url: `${SITE_URL}/not-found`,
-    images: [
-      {
-        url: OG_IMAGE,
-        width: 1200,
-        height: 630,
-        alt: "NoteHub application preview",
-      },
-    ],
-  },
-};
+  path: "/not-found",
+});
 
 export default function NotFound() {
   return (

@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
 import TanStackProvider from "@/components/TanStackProvider/TanStackProvider";
+import { SITE_URL, buildMetadata } from "@/lib/seo";
 
 const roboto = Roboto({
   weight: ["400", "500", "700"],
@@ -12,26 +13,12 @@ const roboto = Roboto({
   subsets: ["latin"],
 });
 
-const SITE_URL = "https://08-zustand.vercel.app";
-const OG_IMAGE = "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg";
-
 export const metadata: Metadata = {
-  title: "NoteHub",
-  description: "NoteHub is a simple application for managing personal notes.",
   metadataBase: new URL(SITE_URL),
-  openGraph: {
+  ...buildMetadata({
     title: "NoteHub",
     description: "NoteHub is a simple application for managing personal notes.",
-    url: SITE_URL,
-    images: [
-      {
-        url: OG_IMAGE,
-        width: 1200,
-        height: 630,
-        alt: "NoteHub application preview",
-      },
-    ],
-  },
+  }),
 };
 
 interface RootLayoutProps {

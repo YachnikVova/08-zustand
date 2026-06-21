@@ -1,27 +1,13 @@
 import type { Metadata } from "next";
 import NoteForm from "@/components/NoteForm/NoteForm";
+import { buildMetadata } from "@/lib/seo";
 import css from "./CreateNote.module.css";
 
-const SITE_URL = "https://08-zustand.vercel.app";
-const OG_IMAGE = "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg";
-
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Create note",
   description: "Create a new personal note in NoteHub.",
-  openGraph: {
-    title: "Create note",
-    description: "Create a new personal note in NoteHub.",
-    url: `${SITE_URL}/notes/action/create`,
-    images: [
-      {
-        url: OG_IMAGE,
-        width: 1200,
-        height: 630,
-        alt: "NoteHub application preview",
-      },
-    ],
-  },
-};
+  path: "/notes/action/create",
+});
 
 export default function CreateNote() {
   return (
